@@ -39,7 +39,9 @@ QXML2CSV::QXML2CSV() :
     writeToScreen(false),
     rewrite(false),
     maxRows(0),
-    csvSeparator(";")
+    csvSeparator(";"),
+    statusPrintCount(1),
+    elementCount(0)
 {
 }
 
@@ -89,6 +91,7 @@ bool QXML2CSV::parse(const QFile &sourceXML, const QFile &destinationCSV, const 
 
     // Parse
     bool result = reader.parse(inputSource);
+    printStatus(9);
 
     finalizeTable();
 
@@ -185,6 +188,7 @@ bool QXML2CSV::startElement(const QString &namespaceURI, const QString &localNam
     Q_UNUSED(namespaceURI);
     Q_UNUSED(qName);
     ++currentLevel;
+    ++elementCount;
 
     // Prepare column information for 1 row
     if(currentLevel >= splitLevel)
@@ -340,7 +344,9 @@ bool QXML2CSV::characters(const QString &str)
  */
 bool QXML2CSV::fatalError(const QXmlParseException &exception)
 {
-    std::cerr << "error " << exception.message().toStdString() << std::endl;
+    std::cerr << "Error: " << exception.message().toStdString() << std::endl;
+    std::cerr << "        at line " << exception.lineNumber() << " (" << exception.columnNumber() << ")." << std::endl;
+    std::cerr << exception.publicId().toStdString() << "/" << exception.systemId().toStdString() << std::endl;
 
     return true;
 }
@@ -382,6 +388,8 @@ void QXML2CSV::write()
     if(writeToScreen)
         std::cout << row.toStdString() << std::endl;
     csvStream << row << endl;
+
+    printStatus(1);
 }
 
 /**
@@ -420,5 +428,38 @@ void QXML2CSV::finalizeTable()
         if(!csvFile.open(QIODevice::WriteOnly))
             return;
         csvStream.setDevice(&csvFile);
+    }
+}
+
+/**
+ * @brief QXML2CSV::printStatus
+ * @param status
+ *
+ * Print the status of the parsing to screen.
+ */
+void QXML2CSV::printStatus(const int &status)
+{
+    // We do not print the status if we are already writing to the screen
+    if(writeToScreen)
+        return;
+
+    // We only print sometimes to keep things speedy
+    if(currentRow % statusPrintCount == 0)
+    {
+        // But for higher number we will print less often
+        if((currentRow) % (statusPrintCount*100) == 0)
+            statusPrintCount *= 10;
+
+        if(status == 1)
+        {
+            std::cout << "\rRow: " << currentRow << "    Elements: " << elementCount << std::flush;
+            return;
+        }
+
+        if(status == 9)
+        {
+            std::cout << std::endl;
+            return;
+        }
     }
 }

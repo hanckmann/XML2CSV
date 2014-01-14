@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 
     // All should be well, lets try to process this thing
     QXML2CSV xc;
-    xc.setWriteToScreen(true);
+    xc.setWriteToScreen(false);
     xc.setCsvSeparator(csvSeperator);
     xc.setAttributeExpansion(attributeExpand);
     xc.parse(xmlFile,csvFile,splitLevel,maxRows);

@@ -39,6 +39,9 @@ private:
     void writeTableHeader();
     void finalizeTable();
 
+    void printStatus(const int &status);
+    int statusPrintCount;
+
     bool writeToScreen;
     bool rewrite;
 
@@ -46,6 +49,7 @@ private:
     int maxRows;
     int currentLevel;
     int currentRow;
+    int elementCount;
     uint currentColumnCount;
     QString csvSeparator;
     QString csvFileName;
