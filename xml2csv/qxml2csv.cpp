@@ -97,6 +97,7 @@ bool QXML2CSV::endElement(const QString &namespaceURI, const QString &localName,
     if(currentLevel == splitLevel)
     {
         printToScreen();
+        columnData.clear();
     }
 
     --currentLevel;

@@ -3,18 +3,18 @@
 #include <QVector>
 #include <../../xml2csv/QIndexMap.h>
 
-int main(int argc, char *argv[])
+int main()
 {
     int result = 0;
 
     // Test for int
-    QIndexMap<int> imi;
-    int testCount = 5;
-    for(int i = 0; i < testCount; ++i)
+    QIndexMap<uint> imi;
+    uint testCount = 5;
+    for(uint i = 0; i < testCount; ++i)
     {
         imi.add(i);
     }
-    for(int i = 0; i < testCount; ++i)
+    for(uint i = 0; i < testCount; ++i)
     {
         if(! (imi.key(i) == i))
             ++result;
@@ -44,14 +44,14 @@ int main(int argc, char *argv[])
         ++result;
 
     // Test if it works in a vector
-    QIndexMap<int> imi2;
+    QIndexMap<uint> imi2;
     testCount = 3;
-    for(int i = 0; i < testCount; ++i)
+    for(uint i = 0; i < testCount; ++i)
         imi2.add(i);
-    QVector< QIndexMap<int> > vimi;
+    QVector< QIndexMap<uint> > vimi;
     vimi.append(imi);
     vimi.append(imi2);
-    QIndexMap<int> t = vimi.at(0);
+    QIndexMap<uint> t = vimi.at(0);
     if(! (t.index(1) == imi2.index(1)))
         ++result;
 
