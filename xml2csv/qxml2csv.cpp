@@ -191,7 +191,7 @@ bool QXML2CSV::startElement(const QString &namespaceURI, const QString &localNam
     {
         QString elementName = localName;
         if(!nameStack.isEmpty())
-            elementName = nameStack.top() + "." + elementName;
+            elementName = nameStack.top() + "." + elementName.replace(csvSeparator, "-");
         nameStack.push(elementName);
         //std::cout << currentLevel << " push:" << elementName.toStdString() << std::endl;
 
@@ -207,8 +207,22 @@ bool QXML2CSV::startElement(const QString &namespaceURI, const QString &localNam
             // Check for attribute expansion - normal order
             if(attributeExpansion.contains(attributeName))
             {
-                // Store expanded name as KEY
-                tempAttrExp.insert(attributeExpansion.value(attributeName), elementName + "." + attributes.value(i));
+                // Check if the VALUE has not already been read
+                if(tempAttrExpInvert.contains(attributeName))
+                {
+
+                    // Find the KEY with the VALUE
+                    QString tmpName = attributeName;
+                    attributeName = elementName + "." + attributeValue;
+                    attributeValue = tempAttrExpInvert.value(tmpName);
+                    columnNames.add(attributeName);
+                    columnData.insert(attributeName, attributeValue);
+                }
+                else
+                {
+                    // Store expanded name as KEY
+                    tempAttrExp.insert(attributeExpansion.value(attributeName), elementName + "." + attributes.value(i));
+                }
                 continue;
             }
             if(tempAttrExp.contains(attributeName))
@@ -225,14 +239,6 @@ bool QXML2CSV::startElement(const QString &namespaceURI, const QString &localNam
             {
                 // Store the VALUE
                 tempAttrExpInvert.insert(attributeExpansionInverted.value(attributeName), attributes.value(i));
-                continue;
-            }
-            if(tempAttrExpInvert.contains(attributeName))
-            {
-                // Find the KEY with the VALUE
-                attributeName = elementName + "." + attributeValue;
-                columnNames.add(attributeName);
-                columnData.insert(attributeName, tempAttrExpInvert.value(attributeName));
                 continue;
             }
 
@@ -315,7 +321,7 @@ bool QXML2CSV::characters(const QString &str)
         if(!elementValue.simplified().replace(" ","").isEmpty())
         {
             columnNames.add(elementName);
-            columnData.insert(elementName, elementValue);
+            columnData.insert(elementName, elementValue.replace(csvSeparator, "-"));
 
             //            std::cout << "element  :\t" << elementName.toStdString()
             //                      << "\t" << elementValue.toStdString() << std::endl;
