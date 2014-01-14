@@ -14,6 +14,7 @@ void printHelp(QString appName)
     std::cout << " -h              Diplay this help." << std::endl;
     std::cout << " -s <character>  CSV column separator." << std::endl;
     std::cout << " -l <integer>    XML element nesting level to divide into rows." << std::endl;
+    std::cout << " -r <integer>    Number of rows to be parsed (for testing the output)." << std::endl;
     std::cout << " -e <key1,value1;key2,value2>" << std::endl;
     std::cout << "                 XML attribut to be expanded as element in the csv." << std::endl;
 }
@@ -32,8 +33,9 @@ int main(int argc, char *argv[])
     // Process arguments
     QString xmlFileName;
     QString csvFileName;
-    QString csvSeperator = ",";
+    QString csvSeperator = ";";
     QStringList attributeExpand;
+    int maxRows = 0;
     int splitLevel = 1;
 
     for(int i = 1; i < a.arguments().size(); i+=2)
@@ -84,8 +86,24 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        xmlFileName = a.arguments().at(i);
-                        csvFileName = a.arguments().at(i+1);
+                        // Check for max rows parameter
+                        if(a.arguments().at(i).startsWith("-r"))
+                        {
+                            bool* ok = new bool(false);
+                            maxRows = a.arguments().at(i+1).toInt(ok);
+                            if(!ok)
+                            {
+                                std::cerr << "Error! Rows argument invalid. "
+                                          << a.arguments().at(i+1).toStdString() << std::endl;
+                                printHelp(a.arguments().at(0));
+                                return 4;
+                            }
+                        }
+                        else
+                        {
+                            xmlFileName = a.arguments().at(i);
+                            csvFileName = a.arguments().at(i+1);
+                        }
                     }
                 }
             }
@@ -100,30 +118,23 @@ int main(int argc, char *argv[])
         std::cerr << "Error! File does not exist."
                   << xmlFileName.toStdString() << std::endl;
         printHelp(a.arguments().at(0));
-        return 4;
+        return 9;
     }
-    /*
-    if(csvFile.exists())
-    {
-        std::cerr << "Error! File exists, refusing to overwrite."
-                  << csvFileName.toStdString() << std::endl;
-        printHelp(a.arguments().at(0));
-        return 4;
-    }
-    */
 
 
     std::cout << "INFO: Settings:" << std::endl;
     std::cout << "INFO:   XML\t" << xmlFileName.toStdString() << std::endl;
     std::cout << "INFO:   CSV\t" << csvFileName.toStdString() << std::endl;
     std::cout << "INFO:   sep\t" << csvSeperator.toStdString() << std::endl;
+    std::cout << "INFO:   rows\t" << maxRows << std::endl;
     std::cout << "INFO:   level\t" << splitLevel << std::endl;
 
     // All should be well, lets try to process this thing
     QXML2CSV xc;
     xc.setWriteToScreen(true);
+    xc.setCsvSeparator(csvSeperator);
     xc.setAttributeExpansion(attributeExpand);
-    xc.parse(xmlFile,csvFile,splitLevel,csvSeperator);
+    xc.parse(xmlFile,csvFile,splitLevel,maxRows);
 
     return 0;
 }

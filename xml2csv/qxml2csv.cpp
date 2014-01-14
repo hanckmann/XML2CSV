@@ -1,5 +1,5 @@
 /**
- *
+ *Example in and output
  * This looks as follows:
  * <ELEMENT-LEVEL-0>
  *  <LEVEL-1>
@@ -37,12 +37,26 @@
  */
 QXML2CSV::QXML2CSV() :
     writeToScreen(false),
-    rewrite(false)
+    rewrite(false),
+    maxRows(0),
+    csvSeparator(";")
 {
 }
 
-
-bool QXML2CSV::parse(const QFile &sourceXML, const QFile &destinationCSV, const int &splitLevel, const QString &csvSeparator)
+/**
+ * @brief QXML2CSV::parse
+ * @param sourceXML
+ * @param destinationCSV
+ * @param splitLevel
+ * @param maxRows
+ * @return
+ *
+ * Starts parsing of XML to create the csv. The splitLevel provides the XML tag
+ * level at which the row separation starts. The maxRows allows testing output
+ * and stops the conversion process when the specified number of rows are
+ * converted. If maxRows <= 0, the maxRows feature is disabled.
+ */
+bool QXML2CSV::parse(const QFile &sourceXML, const QFile &destinationCSV, const int &splitLevel, const int &maxRows = 0)
 {
     // Initialise XML parser
     QFile xmlFile(sourceXML.fileName());
@@ -63,7 +77,8 @@ bool QXML2CSV::parse(const QFile &sourceXML, const QFile &destinationCSV, const 
 
     // Initialise variables
     this->splitLevel = splitLevel;
-    this->csvSeparator = csvSeparator;\
+    if(maxRows > 0)
+        this->maxRows = maxRows;
 
     nameStack.clear();
     columnNames.clear();
@@ -80,17 +95,40 @@ bool QXML2CSV::parse(const QFile &sourceXML, const QFile &destinationCSV, const 
     return result;
 }
 
+/**
+ * @brief QXML2CSV::setAttributeExpansion
+ * @param attributeExpansion
+ *
+ * Enables attribute expansion for the provided attributes.
+ * Attribute expansion converts two attribute values to a key-value pair (like
+ * an element name and value).
+ */
 void QXML2CSV::setAttributeExpansion(const QStringList &attributeExpansion)
 {
     for(int i = 0; i < attributeExpansion.size(); ++i)
     {
         QStringList aeList = attributeExpansion.at(i).split(",");
         if(aeList.size() == 2)
+        {
             this->attributeExpansion.insert(aeList.at(0), aeList.at(1));
+        }
         else
+        {
             std::cerr << "Error: attribute expansion key-value pair invalid: "
                          << attributeExpansion.at(i).toStdString();
+        }
     }
+}
+
+/**
+ * @brief QXML2CSV::setCsvSeparator
+ * @param csvSeparator
+ *
+ * Set the csv column separator character. Default: ;
+ */
+void QXML2CSV::setCsvSeparator(const QString &csvSeparator)
+{
+    this->csvSeparator = csvSeparator;
 }
 
 /**
@@ -230,6 +268,11 @@ bool QXML2CSV::endElement(const QString &namespaceURI, const QString &localName,
     {
         write();
         columnData.clear();
+        if((maxRows) && (currentRow >= maxRows))
+        {
+            std::cerr << "Warning: Reached max number of rows." << std::endl;
+            return false;
+        }
     }
 
     --currentLevel;

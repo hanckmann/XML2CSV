@@ -16,8 +16,9 @@ class QXML2CSV : public QXmlDefaultHandler
 public:
     explicit QXML2CSV();
 
-    bool parse(const QFile &sourceXML, const QFile &csvFile, const int &splitLevel, const QString &csvSeparator);
+    bool parse(const QFile &sourceXML, const QFile &csvFile, const int &splitLevel, const int &maxRows);
     void setAttributeExpansion(const QStringList &attributeExpansion);
+    void setCsvSeparator(const QString &csvSeparator);
     void setWriteToScreen(bool writeToScreen);
     void enableRewrite(bool rewrite);
 
@@ -38,10 +39,11 @@ private:
     void writeTableHeader();
     void finalizeTable();
 
-bool writeToScreen;
+    bool writeToScreen;
     bool rewrite;
 
     int splitLevel;
+    int maxRows;
     int currentLevel;
     int currentRow;
     uint currentColumnCount;
