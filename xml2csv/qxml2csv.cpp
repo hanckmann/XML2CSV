@@ -3,8 +3,6 @@
 #include <iostream>
 #include <QMap>
 
-#include <qindexmap.h>
-
 /**
  * @brief QXML2CSV::QXML2CSV
  */
@@ -24,15 +22,22 @@ bool QXML2CSV::parse(const QFile &sourceXML, const QFile &destinationCSV, const 
     // Initialise variables
     this->splitLevel = splitLevel;
     this->csvSeparator = csvSeparator;
-    this->destinationCSV.setFileName(destinationCSV.fileName());
+    csvFile.setFileName("");
+//    csvFile.setFileName(destinationCSV.fileName());
 
     nameStack.clear();
     columnNames.clear();
     columnData.clear();
     currentLevel = 0;
+    currentRow = 0;
+    currentColumnCount = 0;
 
     // Parse
-    return reader.parse(inputSource);
+    bool result = reader.parse(inputSource);
+
+    printToScreenTableHeader();
+
+    return result;
 }
 
 bool QXML2CSV::startElement(const QString &namespaceURI, const QString &localName, const QString &qName, const QXmlAttributes &attributes)
@@ -58,8 +63,8 @@ bool QXML2CSV::startElement(const QString &namespaceURI, const QString &localNam
             columnNames.add(attributeName);
             columnData.insert(attributeName, attributeValue);
 
-            std::cout << "attribute:\t" << attributeName.toStdString()
-                      << "\t" << attributeValue.toStdString() << std::endl;
+//            std::cout << "attribute:\t" << attributeName.toStdString()
+//                      << "\t" << attributeValue.toStdString() << std::endl;
         }
     }
 
@@ -69,6 +74,7 @@ bool QXML2CSV::startElement(const QString &namespaceURI, const QString &localNam
 bool QXML2CSV::endElement(const QString &namespaceURI, const QString &localName, const QString &qName)
 {
     Q_UNUSED(namespaceURI);
+    Q_UNUSED(localName);
     Q_UNUSED(qName);
 
     // Store the elements data
@@ -90,7 +96,7 @@ bool QXML2CSV::endElement(const QString &namespaceURI, const QString &localName,
     // Create the row
     if(currentLevel == splitLevel)
     {
-        printRowToScreen();
+        printToScreen();
     }
 
     --currentLevel;
@@ -111,8 +117,8 @@ bool QXML2CSV::characters(const QString &str)
             columnNames.add(elementName);
             columnData.insert(elementName, elementValue);
 
-            std::cout << "element  :\t" << elementName.toStdString()
-                      << "\t" << elementValue.toStdString() << std::endl;
+//            std::cout << "element  :\t" << elementName.toStdString()
+//                      << "\t" << elementValue.toStdString() << std::endl;
         }
     }
 
@@ -121,12 +127,55 @@ bool QXML2CSV::characters(const QString &str)
 
 bool QXML2CSV::fatalError(const QXmlParseException &exception)
 {
-    std::cout << "error " << exception.message().toStdString() << std::endl;
+    std::cerr << "error " << exception.message().toStdString() << std::endl;
 
     return true;
 }
 
-void QXML2CSV::printRowToScreen()
+void QXML2CSV::printToScreen()
 {
+    ++currentRow;
 
+    // Build row string
+    QString row;
+    for(uint i = 0; i < columnNames.size(); ++i)
+    {
+        // Add separator (except at start of table)
+        if(i>0)
+            row.append(csvSeparator);
+
+        // Add data if present
+        QString key = columnNames.key(i);
+        if(columnData.contains(key))
+            row.append(columnData.value(key));
+    }
+
+    // Save column count when changed change
+    if(currentColumnCount < columnNames.size())
+    {
+        //QTuple<int> ccc(currentRow, currentColumnCount);
+        //columnCountChange.append(ccc);
+
+        currentColumnCount = columnNames.size();
+    }
+
+    // Print string to screen
+    std::cout << row.toStdString() << std::endl;
+}
+
+void QXML2CSV::printToScreenTableHeader()
+{    // Build row string
+    QString row;
+    for(uint i = 0; i < columnNames.size(); ++i)
+    {
+        // Add separator (except at start of table)
+        if(i>0)
+            row.append(csvSeparator);
+
+        // Add data if present
+        row.append(columnNames.key(i));
+    }
+
+    // Print string to screen
+    std::cout << row.toStdString() << std::endl;
 }

@@ -4,16 +4,18 @@
 #include <QFile>
 #include <QStack>
 #include <QString>
+#include <QVector>
 #include <QXmlDefaultHandler>
 
-#include "qindexmap.h"
+#include "QIndexMap.h"
+#include "QTuple.h"
 
 class QXML2CSV : public QXmlDefaultHandler
 {
 public:
     explicit QXML2CSV();
 
-    bool parse(const QFile &sourceXML, const QFile &destinationCSV, const int &splitLevel, const QString &csvSeparator);
+    bool parse(const QFile &sourceXML, const QFile &csvFile, const int &splitLevel, const QString &csvSeparator);
 
 protected:
     bool startElement(const QString &namespaceURI,
@@ -28,15 +30,19 @@ protected:
 
 
 private:
-    void printRowToScreen();
+    void printToScreen();
+    void printToScreenTableHeader();
 
     int splitLevel;
     int currentLevel;
+    int currentRow;
+    uint currentColumnCount;
     QString csvSeparator;
-    QFile destinationCSV;
+    QFile csvFile;
 
     QStack<QString> nameStack;
     QIndexMap<QString> columnNames;
+    QVector< QTuple<int> > columnCountChange; // Tuple(row, columnCount)
     QMap<QString, QString> columnData;
 
 };

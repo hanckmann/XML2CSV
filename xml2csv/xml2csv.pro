@@ -22,4 +22,5 @@ SOURCES += \
 
 HEADERS += \
     qxml2csv.h \
-    qindexmap.h
+    QTuple.h \
+    QIndexMap.h
