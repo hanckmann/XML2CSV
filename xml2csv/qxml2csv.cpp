@@ -111,11 +111,12 @@ void QXML2CSV::setAttributeExpansion(const QStringList &attributeExpansion)
         if(aeList.size() == 2)
         {
             this->attributeExpansion.insert(aeList.at(0), aeList.at(1));
+            this->attributeExpansionInverted.insert(aeList.at(1), aeList.at(0));
         }
         else
         {
             std::cerr << "Error: attribute expansion key-value pair invalid: "
-                         << attributeExpansion.at(i).toStdString();
+                      << attributeExpansion.at(i).toStdString();
         }
     }
 }
@@ -195,6 +196,7 @@ bool QXML2CSV::startElement(const QString &namespaceURI, const QString &localNam
         //std::cout << currentLevel << " push:" << elementName.toStdString() << std::endl;
 
         QMap<QString, QString> tempAttrExp;
+        QMap<QString, QString> tempAttrExpInvert;
 
         // Parse attributes if present
         for(int i = 0; i < attributes.length(); ++i)
@@ -202,26 +204,41 @@ bool QXML2CSV::startElement(const QString &namespaceURI, const QString &localNam
             QString attributeName  = elementName + "." + attributes.localName(i);
             QString attributeValue = attributes.value(i);
 
-            // Check for attribute expansion
+            // Check for attribute expansion - normal order
             if(attributeExpansion.contains(attributeName))
             {
-                // Store expanded name to find value
+                // Store expanded name as KEY
                 tempAttrExp.insert(attributeExpansion.value(attributeName), elementName + "." + attributes.value(i));
+                continue;
             }
-            else
-                if(tempAttrExp.contains(attributeName))
-                {
-                    // Store expanded name and value pair
-                    attributeName = tempAttrExp.value(attributeName);
-                    columnNames.add(attributeName);
-                    columnData.insert(attributeName, attributeValue);
-                }
-                else
-                {
-                    // Normal situation
-                    columnNames.add(attributeName);
-                    columnData.insert(attributeName, attributeValue);
-                }
+            if(tempAttrExp.contains(attributeName))
+            {
+                // Find the VALUE with the KEY
+                attributeName = tempAttrExp.value(attributeName);
+                columnNames.add(attributeName);
+                columnData.insert(attributeName, attributeValue);
+                continue;
+            }
+
+            // Check for attribute expansion - inverted order
+            if(attributeExpansionInverted.contains(attributeName))
+            {
+                // Store the VALUE
+                tempAttrExpInvert.insert(attributeExpansionInverted.value(attributeName), attributes.value(i));
+                continue;
+            }
+            if(tempAttrExpInvert.contains(attributeName))
+            {
+                // Find the KEY with the VALUE
+                attributeName = elementName + "." + attributeValue;
+                columnNames.add(attributeName);
+                columnData.insert(attributeName, tempAttrExpInvert.value(attributeName));
+                continue;
+            }
+
+            // Normal situation
+            columnNames.add(attributeName);
+            columnData.insert(attributeName, attributeValue);
         }
     }
 

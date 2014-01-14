@@ -57,6 +57,7 @@ private:
     QMap<QString, QString> columnData;
 
     QMap<QString, QString> attributeExpansion;
+    QMap<QString, QString> attributeExpansionInverted;
 };
 
 #endif // QXML2CSV_H
