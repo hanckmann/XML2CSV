@@ -5,6 +5,7 @@
 #include <QStack>
 #include <QString>
 #include <QVector>
+#include <QTextStream>
 #include <QXmlDefaultHandler>
 
 #include "QIndexMap.h"
@@ -16,6 +17,9 @@ public:
     explicit QXML2CSV();
 
     bool parse(const QFile &sourceXML, const QFile &csvFile, const int &splitLevel, const QString &csvSeparator);
+    void setAttributeExpansion(const QStringList &attributeExpansion);
+    void setWriteToScreen(bool writeToScreen);
+    void enableRewrite(bool rewrite);
 
 protected:
     bool startElement(const QString &namespaceURI,
@@ -30,21 +34,27 @@ protected:
 
 
 private:
-    void printToScreen();
-    void printToScreenTableHeader();
+    void write();
+    void writeTableHeader();
+    void finalizeTable();
+
+bool writeToScreen;
+    bool rewrite;
 
     int splitLevel;
     int currentLevel;
     int currentRow;
     uint currentColumnCount;
     QString csvSeparator;
-    QFile csvFile;
+    QString csvFileName;
+    QTextStream csvStream;
 
     QStack<QString> nameStack;
     QIndexMap<QString> columnNames;
     QVector< QTuple<int> > columnCountChange; // Tuple(row, columnCount)
     QMap<QString, QString> columnData;
 
+    QMap<QString, QString> attributeExpansion;
 };
 
 #endif // QXML2CSV_H

@@ -14,6 +14,8 @@ void printHelp(QString appName)
     std::cout << " -h              Diplay this help." << std::endl;
     std::cout << " -s <character>  CSV column separator." << std::endl;
     std::cout << " -l <integer>    XML element nesting level to divide into rows." << std::endl;
+    std::cout << " -e <key1,value1;key2,value2>" << std::endl;
+    std::cout << "                 XML attribut to be expanded as element in the csv." << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -31,13 +33,14 @@ int main(int argc, char *argv[])
     QString xmlFileName;
     QString csvFileName;
     QString csvSeperator = ",";
+    QStringList attributeExpand;
     int splitLevel = 1;
 
     for(int i = 1; i < a.arguments().size(); i+=2)
     {
         // Check for help request
         if(a.arguments().at(i).startsWith("-h") ||
-           a.arguments().at(i+1).startsWith("-h"))
+                a.arguments().at(i+1).startsWith("-h"))
         {
             printHelp(a.arguments().at(0));
             return 2;
@@ -66,8 +69,24 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    xmlFileName = a.arguments().at(i);
-                    csvFileName = a.arguments().at(i+1);
+                    // Check for attribute expansion
+                    if(a.arguments().at(i).startsWith("-e"))
+                    {
+                        bool* ok = new bool(false);
+                        attributeExpand = a.arguments().at(i+1).split(";");
+                        if(!ok)
+                        {
+                            std::cerr << "Error! Expansion argument invalid. "
+                                      << a.arguments().at(i+1).toStdString() << std::endl;
+                            printHelp(a.arguments().at(0));
+                            return 3;
+                        }
+                    }
+                    else
+                    {
+                        xmlFileName = a.arguments().at(i);
+                        csvFileName = a.arguments().at(i+1);
+                    }
                 }
             }
         }
@@ -81,7 +100,7 @@ int main(int argc, char *argv[])
         std::cerr << "Error! File does not exist."
                   << xmlFileName.toStdString() << std::endl;
         printHelp(a.arguments().at(0));
-        return 3;
+        return 4;
     }
     /*
     if(csvFile.exists())
@@ -102,6 +121,8 @@ int main(int argc, char *argv[])
 
     // All should be well, lets try to process this thing
     QXML2CSV xc;
+    xc.setWriteToScreen(true);
+    xc.setAttributeExpansion(attributeExpand);
     xc.parse(xmlFile,csvFile,splitLevel,csvSeperator);
 
     return 0;
