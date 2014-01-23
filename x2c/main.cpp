@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
         if(a.arguments().at(i).startsWith("-h") ||
                 a.arguments().at(i+1).startsWith("-h"))
         {
-            printHelp(a.arguments().at(0));
+            printHelp(a.applicationName());
             return 2;
         }
         else
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
                     {
                         std::cerr << "Error! The row separation number must be an integer. "
                                   << a.arguments().at(i+1).toStdString() << std::endl;
-                        printHelp(a.arguments().at(0));
+                        printHelp(a.applicationName());
                         return 2;
                     }
                 }
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
                         {
                             std::cerr << "Error! Expansion argument invalid. "
                                       << a.arguments().at(i+1).toStdString() << std::endl;
-                            printHelp(a.arguments().at(0));
+                            printHelp(a.applicationName());
                             return 3;
                         }
                     }
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
                             {
                                 std::cerr << "Error! Rows argument invalid. "
                                           << a.arguments().at(i+1).toStdString() << std::endl;
-                                printHelp(a.arguments().at(0));
+                                printHelp(a.applicationName());
                                 return 4;
                             }
                         }
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
     {
         std::cerr << "Error! File does not exist."
                   << xmlFileName.toStdString() << std::endl;
-        printHelp(a.arguments().at(0));
+        printHelp(a.applicationName());
         return 9;
     }
 

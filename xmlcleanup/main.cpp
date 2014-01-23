@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     // Check argument count
     if(a.arguments().size() < 4)
     {
-        printHelp(a.arguments().at(0));
+        printHelp(a.applicationName());
         return 1;
     }
 
@@ -68,10 +68,8 @@ int main(int argc, char *argv[])
     QTextStream source(&sourceFile);
     QTextStream sink(&sinkFile);
 
-
-
     // Add super enclosing open-tag
-    sink << "<" << a.arguments().at(0) << ">" << endl;
+    sink << "<" << a.applicationName() << ">" << endl;
 
     // Start copying and filtering
     while (!source.atEnd())
@@ -102,7 +100,7 @@ int main(int argc, char *argv[])
     std::cout << "\r                                                            \r";
 
     // Add super enclosing close-tag
-    sink << "</" << a.arguments().at(0) << ">" << endl;
+    sink << "</" << a.applicationName() << ">" << endl;
 
     // Close files
     sourceFile.close();
@@ -111,7 +109,8 @@ int main(int argc, char *argv[])
     // Some stats and Exit
     std::cout << "Read lines:    " << readLines << std::endl;
     std::cout << "Written lines: " << writtenLines << std::endl;
-    std::cout << "Filtered out " << (100 / readLines) * writtenLines << "%." << std::endl;
+    double stat = (100.0 - ((100.0 / (double) readLines) * (double) writtenLines));
+    std::cout << "Filtered out:  " << stat << " %" << std::endl;
 
     return 0;
 }
