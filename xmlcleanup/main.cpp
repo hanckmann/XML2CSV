@@ -6,6 +6,16 @@
 #include <QFile>
 #include <QTextStream>
 
+void printHelp(QString appName)
+{
+    std::cout << "Usage: " << appName.toStdString()
+              << " <xml filter tag> <xml inputfile> <xml outputfile>" << std::endl;
+    std::cout << " <xml filter tag> provide the tag enclosing the information that must be filtered." << std::endl;
+    std::cout << " <xml inputfile>  input XML file." << std::endl;
+    std::cout << " <xml outputfile> output XML file (with the filtered tags)." << std::endl;
+    std::cout << "Note that the output xml tags will be enclosed by a xmlcleanup tag." << std::endl;
+}
+
 void someOutput(const int &readCount, const int &writeCount)
 {
     if(readCount%1000 == 0)
@@ -17,6 +27,13 @@ void someOutput(const int &readCount, const int &writeCount)
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+
+    // Check argument count
+    if(a.arguments().size() < 4)
+    {
+        printHelp(a.arguments().at(0));
+        return 1;
+    }
 
     QString filterTag = a.arguments().at(1);
     QString sourceFileName = a.arguments().at(2);
@@ -38,18 +55,25 @@ int main(int argc, char *argv[])
     // Open source
     QFile sourceFile(sourceFileName);
     if (!sourceFile.open(QIODevice::ReadOnly | QIODevice::Text))
-       return 1;
+        return 1;
 
     // Open sink
     QFile sinkFile(sinkFileName);
     if (!sinkFile.open(QIODevice::WriteOnly | QIODevice::Text))
-       return 2;
+        return 2;
 
     // Files are open
     QString line;
     QString lineSimplified;
     QTextStream source(&sourceFile);
     QTextStream sink(&sinkFile);
+
+
+
+    // Add super enclosing open-tag
+    sink << "<" << a.arguments().at(0) << ">" << endl;
+
+    // Start copying and filtering
     while (!source.atEnd())
     {
         ++readLines;
@@ -75,7 +99,10 @@ int main(int argc, char *argv[])
         }
         someOutput(readLines, writtenLines);
     }
-    std::cout << std::endl;
+    std::cout << "\r                                                            \r";
+
+    // Add super enclosing close-tag
+    sink << "</" << a.arguments().at(0) << ">" << endl;
 
     // Close files
     sourceFile.close();
@@ -84,6 +111,7 @@ int main(int argc, char *argv[])
     // Some stats and Exit
     std::cout << "Read lines:    " << readLines << std::endl;
     std::cout << "Written lines: " << writtenLines << std::endl;
+    std::cout << "Filtered out " << (100 / readLines) * writtenLines << "%." << std::endl;
 
     return 0;
 }
