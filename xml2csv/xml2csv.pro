@@ -9,6 +9,7 @@ QT       -= gui
 
 TARGET = qxml2csv
 TEMPLATE = lib
+CONFIG += staticlib
 
 MOC_DIR = tmp
 OBJECTS_DIR = obj
