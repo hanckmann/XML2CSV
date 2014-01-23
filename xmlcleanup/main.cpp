@@ -20,7 +20,7 @@ void someOutput(const int &readCount, const int &writeCount)
 {
     if(readCount%1000 == 0)
     {
-        std::cout << "\r Reads: " << readCount << "\t Writes: " << writeCount;
+        std::cout << "\r Reads: " << readCount << "      Writes: " << writeCount;
     }
 }
 
