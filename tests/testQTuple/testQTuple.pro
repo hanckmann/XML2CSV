@@ -12,6 +12,10 @@ TARGET = testQTuple
 CONFIG   += console
 CONFIG   -= app_bundle
 
+MOC_DIR = tmp
+OBJECTS_DIR = obj
+DESTDIR = ../../bin
+
 TEMPLATE = app
 
 
