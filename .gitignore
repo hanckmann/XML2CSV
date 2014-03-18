@@ -1,3 +1,6 @@
+# Ignore the bin folder
+bin/
+
 ##### C++
 # Compiled Object files
 *.slo
