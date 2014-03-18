@@ -1,15 +1,15 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2014-01-08T17:26:40
+# Project created by QtCreator 2014-03-18T16:03:05
 #
 #-------------------------------------------------
 
-include(../QXML2CSV.pri)
+include(../QCSV2MATRIX.pri)
 
-QT       += core xml
+QT       += core
 QT       -= gui
 
-TARGET = xml2csv
+TARGET = csv2matrix
 CONFIG   += console
 CONFIG   -= app_bundle
 

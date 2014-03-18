@@ -27,6 +27,7 @@ void someOutput(const int &readCount, const int &writeCount)
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+    a.setApplicationName("xmlcleanup");
 
     // Check argument count
     if(a.arguments().size() < 4)

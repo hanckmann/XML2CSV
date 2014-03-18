@@ -22,6 +22,7 @@ void printHelp(QString appName)
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+    a.setApplicationName("xml2csv");
 
     // Check argument count
     if (a.arguments().size() <= 1)

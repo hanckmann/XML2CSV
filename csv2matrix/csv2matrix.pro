@@ -4,20 +4,22 @@
 #
 #-------------------------------------------------
 
-include(../QXML2CSV.pri)
-
 QT       += core xml
 QT       -= gui
 
-TARGET = xml2csv
-CONFIG   += console
-CONFIG   -= app_bundle
+TARGET = qcsv2matrix
+TEMPLATE = lib
+CONFIG += staticlib
 
 MOC_DIR = tmp
 OBJECTS_DIR = obj
 DESTDIR = ../bin
 
-TEMPLATE = app
+DEFINES += QCSV2MATRIX_LIBRARY
 
 
-SOURCES += main.cpp
+SOURCES += \
+    qcsv2matrix.cpp
+
+HEADERS += \
+    qcsv2matrix.h
