@@ -136,7 +136,7 @@ class csv2matrix:
                     # This line is the header
                     print " * Found header"
                     header = line
-                    continue
+
                 prev_line = line
                 line_count += 1
 

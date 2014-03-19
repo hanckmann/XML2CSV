@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+#include "qcsv2matrix.h"
+
 void printHelp(QString appName)
 {
     std::cout << "Usage: " << appName.toStdString()
@@ -232,5 +234,8 @@ int main(int argc, char *argv[])
     std::cout << "INFO:   csvFileName\t" << csvFileName.toStdString() << std::endl;
 
     // All should be well, lets try to process this thing
-    return 0;
+    QCSV2MATRIX cm;
+    if(cm.convert(csvFile, mtxFile, csvSeperator, mtxSeperator, rawColumns, minColumns, noHeader, lastLine, unique))
+        return 0;
+    return 99;
 }
