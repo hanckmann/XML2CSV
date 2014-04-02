@@ -23,6 +23,7 @@ void printHelp(QString appName)
     std::cout << " -r <int_1 int_n> define the columns that will be copied without processing (i.e. columns with " << std::endl;
     std::cout << "                  date information). This should be a space separated list of column numbers " << std::endl;
     std::cout << "                  where the first column is 0 (zero)." << std::endl;
+    std::cout << " -s <int_1 int_n> defines the columns that should be skipped/ignored." << std::endl;
     std::cout << " -t <integer> <format> " << std::endl;
     std::cout << "    <integer>     define the column containing a date-time formatted string. The date-time will" << std::endl;
     std::cout << "                  be converted to the UNIX standard time-format (integer)." << std::endl;
@@ -61,6 +62,7 @@ int main(int argc, char *argv[])
     QString mtxSeperator = ";";
     int minColumns = -1;
     QList<int> rawColumns;
+    QList<int> ignoreColumns;
     int dtColumn = -1;
     QString dtFormat = "";
     QString mtxFileName;
@@ -169,6 +171,31 @@ int main(int argc, char *argv[])
                 return 8;
             }
         }
+        // Check for ignoreColumns
+        else if(a.arguments().at(i).startsWith("-s"))
+        {
+            if(!isLastArgument)
+            {
+                for(int j = i+1; j < a.arguments().size(); j++)
+                {
+                    bool ok;
+                    int c = a.arguments().at(j).toInt(&ok);
+                    if(!ok)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        ignoreColumns.append(c);
+                    }
+                }
+            }
+            else
+            {
+                printHelp(a.applicationName());
+                return 8;
+            }
+        }
         // Check for date-time column
         else if(a.arguments().at(i).startsWith("-t"))
         {
@@ -262,6 +289,16 @@ int main(int argc, char *argv[])
         std::cout << rawColumns.at(i);
     }
     std::cout << std::endl;
+    std::cout << "INFO:   ignoreColumns:\t";
+    for(int i = 0; i < ignoreColumns.size(); ++i)
+    {
+        if(i > 0)
+        {
+            std::cout << ", ";
+        }
+        std::cout << ignoreColumns.at(i);
+    }
+    std::cout << std::endl;
     std::cout << "INFO:   dtColumn:\t" << dtColumn << std::endl;
     std::cout << "INFO:   dtFormat:\t" << dtFormat.toStdString() << std::endl;
     std::cout << "INFO:   mtxFileName\t" << mtxFileName.toStdString() << std::endl;
@@ -269,7 +306,7 @@ int main(int argc, char *argv[])
 
     // All should be well, lets try to process this thing
     QCSV2MATRIX cm;
-    if(cm.convert(csvFile, mtxFile, csvSeperator, mtxSeperator, rawColumns, dtColumn, dtFormat, minColumns, noHeader, lastLine, unique))
+    if(cm.convert(csvFile, mtxFile, csvSeperator, mtxSeperator, rawColumns, ignoreColumns, dtColumn, dtFormat, minColumns, noHeader, lastLine, unique))
         return 0;
     return 99;
 }

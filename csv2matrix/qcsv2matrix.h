@@ -13,7 +13,7 @@ class QCSV2MATRIX
 public:
     explicit QCSV2MATRIX();
 
-    bool convert(const QFile& sourceCSVFile, const QFile& sourceMTXFile, const QString& csvSeperator, const QString& mtxSeperator, const QList<int>& rawColumns, const int& dtColumn, const QString& dtFormat, const int& minColumns, const bool& noHeader, const bool& lastLine, const bool& unique);
+    bool convert(const QFile& sourceCSVFile, const QFile& sourceMTXFile, const QString& csvSeperator, const QString& mtxSeperator, const QList<int>& rawColumns, const QList<int>& ignoreColumns, const int& dtColumn, const QString& dtFormat, const int& minColumns, const bool& noHeader, const bool& lastLine, const bool& unique);
 
 private:
     bool noHeader;

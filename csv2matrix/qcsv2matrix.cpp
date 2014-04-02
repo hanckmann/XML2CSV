@@ -18,7 +18,7 @@ QCSV2MATRIX::QCSV2MATRIX() :
 {
 }
 
-bool QCSV2MATRIX::convert(const QFile& sourceCSVFile, const QFile &sourceMTXFile, const QString& csvSeperator, const QString& mtxSeperator, const QList<int>& rawColumns, const int& dtColumn = -1, const QString& dtFormat = "", const int& minColumns = -1, const bool& noHeader = false, const bool& lastLine = false, const bool& unique = false)
+bool QCSV2MATRIX::convert(const QFile& sourceCSVFile, const QFile &sourceMTXFile, const QString& csvSeperator, const QString& mtxSeperator, const QList<int>& rawColumns, const QList<int>& ignoreColumns, const int& dtColumn = -1, const QString& dtFormat = "", const int& minColumns = -1, const bool& noHeader = false, const bool& lastLine = false, const bool& unique = false)
 {
     // Initialise CSV reader
     QFile csvFile(sourceCSVFile.fileName());
@@ -62,12 +62,16 @@ bool QCSV2MATRIX::convert(const QFile& sourceCSVFile, const QFile &sourceMTXFile
         {
             QStringList columnList = prevLine.split(csvSeperator);
             QString mtxLine = "";
-            int index = 0;
-            for(index = 0; index < columnList.size(); ++index)
+            int processed = 0;
+            for(int index = 0; index < columnList.size(); ++index)
             {
+                // Check if this is an ignoreColumn (if yes ignore)
+                if(ignoreColumns.contains(index))
+                    continue;
+
                 QString columnValue = columnList.at(index);
                 // Check if we need to extend the columnLegends
-                if(index >= columnLegends.size())
+                if(processed >= columnLegends.size())
                 {
                     QMap<QString, int> msi;
                     columnLegends.append(msi);
@@ -75,16 +79,16 @@ bool QCSV2MATRIX::convert(const QFile& sourceCSVFile, const QFile &sourceMTXFile
                     if(stringIsNumber(columnValue))
                     {
                         // Add this number in the rawColumns list
-                        copyColumns.append(index);
+                        copyColumns.append(processed);
                     }
                 }
                 // Check if this is a raw column
-                if(!copyColumns.contains(index))
+                if(!copyColumns.contains(processed))
                 {
-                    if(!columnLegends.at(index).contains(columnValue))
+                    if(!columnLegends.at(processed).contains(columnValue))
                     {
                         QMap<QString, int> tmpLegend;
-                        tmpLegend = columnLegends.at(index);
+                        tmpLegend = columnLegends.at(processed);
                         int value;
                         if(unique)
                         {
@@ -93,27 +97,28 @@ bool QCSV2MATRIX::convert(const QFile& sourceCSVFile, const QFile &sourceMTXFile
                         }
                         else
                         {
-                            value = columnLegends.at(index).size();
+                            value = columnLegends.at(processed).size();
                         }
                         tmpLegend.insert(columnValue, value);
-                        columnLegends.replace(index, tmpLegend);
+                        columnLegends.replace(processed, tmpLegend);
                     }
-                    columnValue.setNum(columnLegends.at(index).value(columnValue));
+                    columnValue.setNum(columnLegends.at(processed).value(columnValue));
                 }
                 // Check if this is a date-time column that should be converted to unix time
-                if(dtColumn == index)
+                if(dtColumn == processed)
                 {
                     QDateTime dt = QDateTime::fromString(columnValue, dtFormat);
                     columnValue = "";
                     columnValue = QString::number(dt.toMSecsSinceEpoch());
                 }
                 // The columnValue is prepared for the mtx
-                if(index > 0)
+                if(processed > 0)
                     mtxLine += mtxSeperator;
                 mtxLine += columnValue;
+                ++processed;
             }
             // Extend the number of columns to satisfy minColumns
-            for(;index < minColumns; ++index)
+            for(;processed < minColumns; ++processed)
             {
                 mtxLine += mtxSeperator;
             }
@@ -133,6 +138,7 @@ bool QCSV2MATRIX::convert(const QFile& sourceCSVFile, const QFile &sourceMTXFile
     else
     {
         //process last line
+        std::cout << "WARN: the current implementation does not process the last line with these settings!" << std::endl;
     }
 
     // Close the files neatly
@@ -140,6 +146,38 @@ bool QCSV2MATRIX::convert(const QFile& sourceCSVFile, const QFile &sourceMTXFile
     mtxFile.close();
 
     // Serialise the legends and headers
+    // Initialise Header writer
+    QFile headerFile(sourceMTXFile.fileName() + ".header");
+    if(!headerFile.open(QIODevice::WriteOnly | QIODevice::Text))
+        return false;
+    QTextStream headerStream(&headerFile);
+
+    // Header and legend
+    headerStream << "\\ Header and legend information for the matrix file: " << sourceMTXFile.fileName() << "\n";
+    QStringList headerList = header.split(csvSeperator);
+    QString newHeader;
+    int processed = 0;
+    for(int index = 0; index < headerList.size(); ++index)
+    {
+        // Check if this is an ignoreColumn (if yes ignore)
+        if(ignoreColumns.contains(index))
+            continue;
+
+        headerStream << "Column " << processed << ": " << headerList.at(index) << "\n";
+        headerStream << "Legend: \t";
+
+        QMap<QString, int> tmpLegend;
+        tmpLegend = columnLegends.at(processed);
+        QMap<QString, int>::const_iterator i = tmpLegend.constBegin();
+        while (i != tmpLegend.constEnd()) {
+            headerStream  << "\n" << "\t" << i.value() << "\t" << i.key();
+            ++i;
+        }
+        headerStream  << "\n" ;
+        ++processed;
+    }
+
+    headerFile.close();
 
     return true;
 }
