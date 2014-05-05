@@ -38,7 +38,7 @@ bool QCSV2MATRIX::convert(const QFile& sourceCSVFile, const QFile &sourceMTXFile
     int uniqueValue = 0;
     QString prevLine;
     QString header;
-    QList<QMap<QString, int> > columnLegends;
+    QList<QMap<QString, int>* > columnLegends;
     QList<int> copyColumns(rawColumns);
     copyColumns.append(dtColumns);
 
@@ -74,7 +74,7 @@ bool QCSV2MATRIX::convert(const QFile& sourceCSVFile, const QFile &sourceMTXFile
                 // Check if we need to extend the columnLegends
                 if(processed >= columnLegends.size())
                 {
-                    QMap<QString, int> msi;
+                    QMap<QString, int> *msi = new QMap<QString, int>;
                     columnLegends.append(msi);
                     // Check if this should be a raw column
                     if(stringIsNumber(columnValue))
@@ -86,9 +86,9 @@ bool QCSV2MATRIX::convert(const QFile& sourceCSVFile, const QFile &sourceMTXFile
                 // Check if this is a raw column
                 if(!copyColumns.contains(processed))
                 {
-                    if(!columnLegends.at(processed).contains(columnValue))
+                    if(!columnLegends.at(processed)->contains(columnValue))
                     {
-                        QMap<QString, int> & tmpLegend = columnLegends[processed];
+                        QMap<QString, int> * tmpLegend = columnLegends[processed];
                         int value;
                         if(unique)
                         {
@@ -97,11 +97,11 @@ bool QCSV2MATRIX::convert(const QFile& sourceCSVFile, const QFile &sourceMTXFile
                         }
                         else
                         {
-                            value = tmpLegend.size();
+                            value = tmpLegend->size();
                         }
-                        tmpLegend.insert(columnValue, value);
+                        tmpLegend->insert(columnValue, value);
                     }
-                    columnValue.setNum(columnLegends.at(processed).value(columnValue));
+                    columnValue.setNum(columnLegends.at(processed)->value(columnValue));
                 }
                 // Check if this is a date-time column that should be converted to unix time
                 if(dtColumns.contains(processed))
@@ -166,10 +166,10 @@ bool QCSV2MATRIX::convert(const QFile& sourceCSVFile, const QFile &sourceMTXFile
         headerStream << "Column " << processed << ": " << headerList.at(index) << "\n";
         headerStream << "Legend: \t";
 
-        QMap<QString, int> tmpLegend;
+        QMap<QString, int> *tmpLegend;
         tmpLegend = columnLegends.at(processed);
-        QMap<QString, int>::const_iterator i = tmpLegend.constBegin();
-        while (i != tmpLegend.constEnd()) {
+        QMap<QString, int>::const_iterator i = tmpLegend->constBegin();
+        while (i != tmpLegend->constEnd()) {
             headerStream  << "\n" << "\t" << i.value() << "\t" << i.key();
             ++i;
         }
