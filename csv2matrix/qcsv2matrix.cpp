@@ -83,32 +83,38 @@ bool QCSV2MATRIX::convert(const QFile& sourceCSVFile, const QFile &sourceMTXFile
                         copyColumns.append(processed);
                     }
                 }
-                // Check if this is a raw column
-                if(!copyColumns.contains(processed))
+                // Check if the value is not empty
+                if(!columnValue.isEmpty())
                 {
-                    if(!columnLegends.at(processed)->contains(columnValue))
+                    // Check if this is a raw column
+                    if(!copyColumns.contains(processed))
                     {
-                        QMap<QString, int> * tmpLegend = columnLegends[processed];
-                        int value;
-                        if(unique)
+                        // Make sure that this columnValue exists in the Legend
+                        if(!columnLegends.at(processed)->contains(columnValue))
                         {
-                            value = uniqueValue;
-                            ++uniqueValue;
+                            QMap<QString, int> * tmpLegend = columnLegends[processed];
+                            int value;
+                            if(unique)
+                            {
+                                value = uniqueValue;
+                                ++uniqueValue;
+                            }
+                            else
+                            {
+                                value = tmpLegend->size();
+                            }
+                            tmpLegend->insert(columnValue, value);
                         }
-                        else
-                        {
-                            value = tmpLegend->size();
-                        }
-                        tmpLegend->insert(columnValue, value);
+                        // Convert the columnValue
+                        columnValue.setNum(columnLegends.at(processed)->value(columnValue));
                     }
-                    columnValue.setNum(columnLegends.at(processed)->value(columnValue));
-                }
-                // Check if this is a date-time column that should be converted to unix time
-                if(dtColumns.contains(processed))
-                {
-                    QDateTime dt = QDateTime::fromString(columnValue, dtFormat);
-                    columnValue = "";
-                    columnValue = QString::number(dt.toMSecsSinceEpoch());
+                    // Check if this is a date-time column that should be converted to unix time
+                    if(dtColumns.contains(processed))
+                    {
+                        QDateTime dt = QDateTime::fromString(columnValue, dtFormat);
+                        columnValue = "";
+                        columnValue = QString::number(dt.toMSecsSinceEpoch());
+                    }
                 }
                 // The columnValue is prepared for the mtx
                 if(processed > 0)
