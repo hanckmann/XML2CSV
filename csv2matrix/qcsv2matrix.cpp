@@ -161,6 +161,9 @@ bool QCSV2MATRIX::convert(const QFile& sourceCSVFile, const QFile &sourceMTXFile
     // Header and legend
     headerStream << "\\ Header and legend information for the matrix file: " << sourceMTXFile.fileName() << "\n";
     QStringList headerList = header.split(csvSeperator);
+    // Check if the last headerList item is empty; if yes than remove it
+    if(headerList.last().isEmpty())
+        headerList.removeLast();
     QString newHeader;
     int processed = 0;
     for(int index = 0; index < headerList.size(); ++index)
